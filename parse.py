@@ -32,11 +32,11 @@ negRe = re.compile(f'-\s*(?P<num>\d+)\s*')
 posRe = re.compile(f'(^|\+)\s*(?P<num>\d+)\s*')
 
 # string constants
-prefix = """
+prefix = """\n
 Here is a super cool prefix woohoo!
 """
 
-suffix = """
+suffix = """\n
 Here is a super cool suffix woot woot!
 """
 
@@ -134,7 +134,7 @@ def parse_loop(text):
         print(text)
         raise e
 
-    return coeffs
+    return (coeffs, scopes)
 
 def gen_code(coeffs):
     return str(coeffs)
@@ -150,9 +150,9 @@ def replace_pragma(s):
     content = res.group('content')
 
     # parse the loop
-    coeffs = parse_loop(content)
+    coeffs, scopes = parse_loop(content)
 
-    return s[:start] + gen_code(coeffs) + s[end:]
+    return s[:start] + f'coeffs: {gen_code(coeffs)}' + f'\nscopes: {str(scopes)}' + s[end:]
     
 # adds code prefix to a responsible location
 def add_prefix(s, prefix=prefix):
