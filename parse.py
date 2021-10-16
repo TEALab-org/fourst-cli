@@ -4,6 +4,8 @@ import re
 from math import prod
 import sys
 import os
+from subprocess import Popen, PIPE, STDOUT
+
 
 # what identifiers are supported?
 supportedDatatypes = ["int"]
@@ -152,7 +154,12 @@ def replace_pragma(s):
     # parse the loop
     coeffs, scopes = parse_loop(content)
 
-    return s[:start] + f'coeffs: {gen_code(coeffs)}' + f'\nscopes: {str(scopes)}' + s[end:]
+    # find dimensionality
+    dims = [0] * len(scopes)
+    for d in range(len(scopes)):
+        dims[d] = (max([abs(c[d]) for c in coeffs]) * 2) + 1
+
+    return s[:start] + gen_code(dims, coeffs).decode('utf-8') + s[end:]
     
 # adds code prefix to a responsible location
 def add_prefix(s, prefix=prefix):
@@ -170,13 +177,40 @@ def add_prefix(s, prefix=prefix):
 def add_suffix(s, suffix=suffix):
     return s + suffix
 
+def flatten(dims, indexes):
+    out = 0
+    off = 1
+    
+    for dim, idx in list(zip(dims, indexes))[::-1]:
+        out += off * (idx + (dim // 2))
+        off *= dim
+    return out
+
+
+# generate code
+def gen_code(dims: list, coeffs: dict):
+    coeff_l = prod(dims) * [0.0]
+
+    for c in coeffs:
+        coeff_l[flatten(dims, c)] = coeffs[c]
+
+    p = Popen(['./gencode'],stdout=PIPE,stdin=PIPE)
+    p.stdin.write(
+        f"{len(dims)} {' '.join([str(d) for d in dims])} {' '.join(str(c) for c in coeff_l)}".encode('ascii')
+    )
+    print(f"{len(dims)} {' '.join([str(d) for d in dims])} {' '.join(str(c) for c in coeff_l)}")
+    s = p.communicate()[0]
+    p.stdin.close()
+
+    return s
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print(f"usage: {sys.argv[0]} src dest")
     
     with open(sys.argv[1], 'r') as f:
         content = f.read()
-    
+
     s = replace_pragma(content)
     s = add_prefix(s)
     s = add_suffix(s)
