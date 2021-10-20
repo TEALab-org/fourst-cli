@@ -26,7 +26,7 @@ condRe = re.compile(f'(?P<var>\w+)\s*(?P<comp>{"|".join(supportedComparisons)})\
 stepRe = re.compile(f'(?P<var>\w+)(?P<step>{"|".join(supportedSteps)})')
 
 # kernel components re
-asgnRe = re.compile(f'(?P<arr>\w+)\s*(?P<subscripts>(\[.+?\])+)\s*(?P<assgn>{"|".join(supportedKernalAssignment)})\s*(?P<after>.*;)')
+asgnRe = re.compile(f'(?P<arr>\w+)\s*(?P<subscripts>(\[.+?\])+)\s*(?P<assgn>{"|".join(supportedKernalAssignment)})\s*(?P<after>[\s\S]*?;)')
 sbscRe = re.compile(f'\[(?P<pre>[^\]a-z]*)(?P<var>\w+)(?P<post>[^\]a-z]*)\]')
 
 # arithmetic components re
